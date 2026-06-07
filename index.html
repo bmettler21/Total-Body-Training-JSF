@@ -268,7 +268,7 @@ function loadLastSession(dayIdx) {
       // Re-render with loaded values, then patch DOM inputs directly
       // to ensure browser doesn't cache old input values
       renderContent();
-      setTimeout(function() { applyLoadsToDom(dayIdx); }, 50);
+      setTimeout(function() { applyLoadsToDom(dayIdx); }, 1500);
     })
     .catch(function(){});
 }
