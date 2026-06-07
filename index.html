@@ -369,9 +369,9 @@ function buildLoad(type,sk,ld){
   return "";
 }
 function lf(label,inner){ return '<div class="load-field"><div class="load-label">'+label+'</div>'+inner+'</div>'; }
-function ni(sk,field,val,ph,w){ return '<input class="load-input" type="text" inputmode="decimal" style="width:'+w+'" placeholder="'+ph+'" value="'+(val||"")+'" oninput=\'numInput("'+sk+'","'+field+'",this.value)\'>'; }
+function ni(sk,field,val,ph,w){ return '<input class="load-input" type="text" inputmode="decimal" data-key="'+sk+'" data-field="'+field+'" style="width:'+w+'" placeholder="'+ph+'" value="'+(val||"")+'" oninput=\'numInput("'+sk+'","'+field+'",this.value)\'>'; }
 function bs(sk,field,cur,opts){
-  var s='<select class="load-select" onchange=\'bandInput("'+sk+'","'+field+'",this.value)\'>';
+  var s='<select class="load-select" data-key="'+sk+'" data-field="'+field+'" onchange=\'bandInput("'+sk+'","'+field+'",this.value)\'>';
   opts.forEach(function(o){ s+='<option value="'+o+'"'+(o===(cur||"—")?" selected":"")+' style="background:#1a1a1a">'+o+'</option>'; });
   return s+'</select>';
 }
