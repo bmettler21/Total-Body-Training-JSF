@@ -124,18 +124,19 @@
   /* ── Exercise rows ── */
   .ex-row {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 11px 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 12px 16px;
     border-bottom: 1px solid var(--border-light);
-    min-height: 56px;
   }
   .ex-row:last-child { border-bottom: none; }
-  .ex-info { flex: 1; min-width: 0; }
-  .ex-name { font-size: 17px; font-weight: 500; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ex-info { width: 100%; min-width: 0; }
+  .ex-name { font-size: 17px; font-weight: 500; line-height: 1.25; }
   .ex-name.dim { color: var(--text-dim); font-weight: 400; }
-  .ex-spec { font-family: var(--mono); font-size: 12px; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ex-spec { font-family: var(--mono); font-size: 12px; margin-top: 3px; }
   .ex-spec.dim { color: var(--text-faint); }
+  .ex-controls { display: flex; align-items: center; gap: 10px; }
 
   /* ── Load controls ── */
   .load-wrap { display: flex; gap: 5px; align-items: center; flex-shrink: 0; }
@@ -307,7 +308,7 @@
 
 <!-- IMPORTANT: paste your Apps Script web app URL here -->
 <script>
-  var GAS_URL = "https://script.google.com/macros/s/AKfycbywDINVmU43fMM7LXeTxtXEwoNZTA4T-qICuF8CFtrnd72iEPAnv7VBAR7M-cJm53IatA/exec";
+  var GAS_URL = "PASTE_YOUR_APPS_SCRIPT_URL_HERE";
 </script>
 
 <div id="offline-banner">No connection — session will save when back online</div>
@@ -491,17 +492,21 @@ function renderContent() {
       if (item.spec) html.push('<div class="ex-spec'+(trackable?" bright":" dim")+'" style="'+(trackable?"color:"+color:"")+'">'+ item.spec+'</div>');
       html.push('</div>');
 
-      if (trackable) html.push('<div class="load-wrap">'+buildLoad(item.load,sk,ld)+'</div>');
-      if (trackable&&hasRounds) html.push('<div class="ctrl-divider"></div>');
-      if (hasRounds&&item.load) {
-        html.push('<div class="rounds-wrap">');
-        for (var r=0;r<sec.rounds;r++){
-          var rk=sk+"-"+r, done=!!state.rounds[rk];
-          html.push('<button class="round-btn'+(done?" done":"")+'" style="'+(done?"background:"+color+";border:none":"")+'" onclick="toggleRound(\''+rk+'\',\''+color+'\',this)">');
-          html.push('<svg width="16" height="16" viewBox="0 0 14 14" fill="none"><path d="M2 7L5.5 10.5L12 3.5" stroke="#000" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>');
-          html.push('</button>');
+      if (trackable || (hasRounds && item.load)) {
+        html.push('<div class="ex-controls">');
+        if (trackable) html.push('<div class="load-wrap">'+buildLoad(item.load,sk,ld)+'</div>');
+        if (trackable && hasRounds) html.push('<div class="ctrl-divider"></div>');
+        if (hasRounds&&item.load) {
+          html.push('<div class="rounds-wrap">');
+          for (var r=0;r<sec.rounds;r++){
+            var rk=sk+"-"+r, done=!!state.rounds[rk];
+            html.push('<button class="round-btn'+(done?" done":"")+'" style="'+(done?"background:"+color+";border:none":"")+'" onclick="toggleRound(\''+rk+'\',\''+color+'\',this)">');
+            html.push('<svg width="16" height="16" viewBox="0 0 14 14" fill="none"><path d="M2 7L5.5 10.5L12 3.5" stroke="#000" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+            html.push('</button>');
+          }
+          html.push('</div>');
         }
-        html.push('</div>');
+        html.push('</div>'); // ex-controls
       }
       html.push('</div>');
     });
