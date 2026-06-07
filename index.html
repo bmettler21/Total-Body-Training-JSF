@@ -254,48 +254,22 @@ function loadLastSession(dayIdx) {
     .then(function(result) {
       if (!result||!result.success||!result.data) return;
       var last=result.data, day=DAYS[dayIdx];
+      var found=false;
       day.sections.forEach(function(sec,si){
         if (!sec.rounds) return;
         sec.items.forEach(function(item,ii){
           if (!item.load||item.load==="bodyweight") return;
           var k=dayIdx+"-"+si+"-"+ii;
           if (last[item.name]) {
-            try { state.loads[k]=JSON.parse(last[item.name].loadValue); }
-            catch(e){ state.loads[k]={weight:last[item.name].loadValue}; }
+            try { state.loads[k]=JSON.parse(last[item.name].loadValue); found=true; }
+            catch(e){ state.loads[k]={weight:last[item.name].loadValue}; found=true; }
           }
         });
       });
-      // Re-render with loaded values, then patch DOM inputs directly
-      // to ensure browser doesn't cache old input values
-      renderContent();
-      setTimeout(function() { applyLoadsToDom(dayIdx); }, 1500);
+      // Only re-render if we actually got data — this renders inputs with values baked in
+      if (found) renderContent();
     })
     .catch(function(){});
-}
-
-function applyLoadsToDom(dayIdx) {
-  var day=DAYS[dayIdx];
-  day.sections.forEach(function(sec,si){
-    if (!sec.rounds) return;
-    sec.items.forEach(function(item,ii){
-      if (!item.load||item.load==="bodyweight") return;
-      var k=dayIdx+"-"+si+"-"+ii;
-      var ld=state.loads[k];
-      if (!ld) return;
-      // Set numeric inputs by data-key and data-field attributes
-      ['weight','incline','resistance','vest'].forEach(function(field){
-        if (ld[field]!==undefined) {
-          var inp=document.querySelector('input[data-key="'+k+'"][data-field="'+field+'"]');
-          if (inp) inp.value=ld[field];
-        }
-      });
-      // Set band selects
-      if (ld.band!==undefined) {
-        var sel=document.querySelector('select[data-key="'+k+'"][data-field="band"]');
-        if (sel) sel.value=ld.band;
-      }
-    });
-  });
 }
 
 /* ── RENDER ── */
