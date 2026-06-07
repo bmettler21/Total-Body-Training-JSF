@@ -259,7 +259,7 @@ function loadLastSession(dayIdx) {
         sec.items.forEach(function(item,ii){
           if (!item.load||item.load==="bodyweight") return;
           var k=dayIdx+"-"+si+"-"+ii;
-          if (last[item.name]&&!state.loads[k]) {
+          if (last[item.name]) {
             try { state.loads[k]=JSON.parse(last[item.name].loadValue); }
             catch(e){ state.loads[k]={weight:last[item.name].loadValue}; }
           }
