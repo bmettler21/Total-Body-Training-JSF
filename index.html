@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Training">
+<title>Total Body Training</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0A0A0A;
+    --surface: rgba(255,255,255,0.05);
+    --border: rgba(255,255,255,0.09);
+    --border-light: rgba(255,255,255,0.05);
+    --text: #fff;
+    --text-dim: rgba(255,255,255,0.45);
+    --text-faint: rgba(255,255,255,0.28);
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+    --display: 'Barlow Condensed', sans-serif;
+  }
+
+  html { font-size: 16px; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    -webkit-font-smoothing: antialiased;
+    -webkit-text-size-adjust: 100%;
+    padding-bottom: max(32px, env(safe-area-inset-bottom));
+  }
+
+  /* ── Header ── */
+  #header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 18px 14px;
+    padding-top: max(16px, env(safe-area-inset-top));
+  }
+  .header-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+  .header-title {
+    font-family: var(--display);
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    line-height: 1;
+  }
+
+  /* ── Day tabs ── */
+  #day-tabs {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .day-tab {
+    flex: 1;
+    height: 48px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.14);
+    background: transparent;
+    color: var(--text-dim);
+    font-family: var(--display);
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .day-tab.active { border: none; color: #000; }
+  .day-tab .done-mark { position: absolute; top: 5px; right: 7px; font-size: 11px; }
+
+  /* ── Content ── */
+  #content { padding: 0 16px 24px; }
+
+  .day-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 2px 14px;
+  }
+  .day-bar { width: 5px; height: 36px; border-radius: 3px; flex-shrink: 0; }
+  .day-title { font-family: var(--display); font-size: 26px; font-weight: 800; letter-spacing: 0.04em; }
+  .day-subtitle { font-family: var(--mono); font-size: 11px; color: var(--text-faint); letter-spacing: 0.07em; text-transform: uppercase; margin-top: 2px; }
+
+  /* ── Section cards ── */
+  .section-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    gap: 8px;
+  }
+  .section-title { font-family: var(--display); font-size: 19px; font-weight: 700; letter-spacing: 0.06em; flex-shrink: 0; }
+  .section-title.dim { color: var(--text-dim); }
+  .section-meta { font-family: var(--mono); font-size: 11px; letter-spacing: 0.03em; text-align: right; line-height: 1.4; color: inherit; }
+
+  /* ── Exercise rows ── */
+  .ex-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--border-light);
+    min-height: 56px;
+  }
+  .ex-row:last-child { border-bottom: none; }
+  .ex-info { flex: 1; min-width: 0; }
+  .ex-name { font-size: 17px; font-weight: 500; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ex-name.dim { color: var(--text-dim); font-weight: 400; }
+  .ex-spec { font-family: var(--mono); font-size: 12px; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ex-spec.dim { color: var(--text-faint); }
+
+  /* ── Load controls ── */
+  .load-wrap { display: flex; gap: 5px; align-items: center; flex-shrink: 0; }
+  .load-field { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .load-label { font-family: var(--mono); font-size: 10px; color: var(--text-faint); letter-spacing: 0.08em; text-transform: uppercase; }
+
+  .load-input {
+    height: 44px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 7px;
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 16px;
+    padding: 0 6px;
+    text-align: center;
+    outline: none;
+    width: 58px;
+    -webkit-appearance: none;
+  }
+  .load-input:focus { border-color: rgba(255,255,255,0.5); }
+  .load-input::placeholder { color: rgba(255,255,255,0.2); }
+
+  .load-select {
+    height: 44px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 7px;
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 14px;
+    padding: 0 4px;
+    text-align: center;
+    outline: none;
+    width: 90px;
+    -webkit-appearance: none;
+    cursor: pointer;
+  }
+  .load-select:focus { border-color: rgba(255,255,255,0.5); }
+
+  .ctrl-divider { width: 1px; height: 30px; background: rgba(255,255,255,0.1); flex-shrink: 0; }
+
+  /* ── Round buttons ── */
+  .rounds-wrap { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+  .round-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 7px;
+    border: 2px solid rgba(255,255,255,0.22);
+    background: rgba(255,255,255,0.04);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.12s;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .round-btn.done { border: none; }
+  .round-btn svg { display: none; }
+  .round-btn.done svg { display: block; }
+
+  /* ── Notes ── */
+  .notes-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+  .notes-label { font-family: var(--display); font-size: 14px; font-weight: 700; letter-spacing: 0.08em; color: var(--text-faint); margin-bottom: 8px; }
+  .notes-input {
+    width: 100%;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px;
+    color: #fff;
+    font-family: var(--sans);
+    font-size: 16px;
+    padding: 11px 13px;
+    resize: none;
+    outline: none;
+    line-height: 1.5;
+  }
+  .notes-input:focus { border-color: rgba(255,255,255,0.35); }
+  .notes-input::placeholder { color: rgba(255,255,255,0.18); }
+
+  /* ── Buttons ── */
+  .btn-save {
+    width: 100%;
+    height: 56px;
+    border-radius: 10px;
+    border: none;
+    font-family: var(--display);
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    margin-bottom: 10px;
+    -webkit-tap-highlight-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-save:active { opacity: 0.8; }
+
+  .btn-complete {
+    width: 100%;
+    height: 52px;
+    border-radius: 10px;
+    font-family: var(--display);
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: all 0.18s;
+    background: transparent;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-complete:active { opacity: 0.8; }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed;
+    bottom: 36px;
+    left: 50%;
+    transform: translateX(-50%) translateY(90px);
+    background: #1c1c1c;
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 12px 22px;
+    border-radius: 24px;
+    transition: transform 0.25s ease;
+    z-index: 100;
+    white-space: nowrap;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ── Offline banner ── */
+  #offline-banner {
+    display: none;
+    background: rgba(255,107,53,0.15);
+    border-bottom: 1px solid rgba(255,107,53,0.3);
+    padding: 8px 18px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: #FF6B35;
+    text-align: center;
+  }
+  #offline-banner.visible { display: block; }
+
+  /* ── Spinner ── */
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid rgba(0,0,0,0.25);
+    border-top-color: #000;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- IMPORTANT: paste your Apps Script web app URL here -->
+<script>
+  var GAS_URL = "PASTE_YOUR_APPS_SCRIPT_URL_HERE";
+</script>
+
+<div id="offline-banner">No connection — session will save when back online</div>
+
+<div id="header">
+  <div class="header-eyebrow">3-Day Program</div>
+  <div class="header-title">TOTAL BODY TRAINING</div>
+  <div id="day-tabs"></div>
+</div>
+
+<div id="content"></div>
+<div id="toast"></div>
+
+<script>
+var LOOP_BANDS = ["—","Green","Blue","Orange","Red","Black","Purple"];
+var MINI_BANDS = ["—","Blue","Yellow","Red","Black"];
+
+var DAYS = [
+  {
+    id:0, key:"Day 1", label:"Strength & Conditioning", color:"#C8FF00",
+    sections:[
+      { title:"Warm-Up", subtitle:"3–4 min", type:"warmup", items:[
+        { name:"Jump Rope or Bike", spec:"1 min" },
+        { name:"World's Greatest Stretch", spec:"4/side" },
+        { name:"Band Pull-Aparts", spec:"15 reps" }
+      ]},
+      { title:"Strength Superset", subtitle:"4 rounds · rest 60s", type:"superset", rounds:4, items:[
+        { name:"Goblet Squat", spec:"8–10 reps", load:"db-single" },
+        { name:"Dumbbell Bench Press", spec:"8–10 reps", load:"db-bilateral" }
+      ]},
+      { title:"Accessory Circuit", subtitle:"3 rounds", type:"circuit", rounds:3, items:[
+        { name:"Dumbbell RDL", spec:"10 reps", load:"db-bilateral" },
+        { name:"TRX Row", spec:"10 reps", load:"bodyweight" },
+        { name:"Plank", spec:"1 min hold", load:"bodyweight" },
+        { name:"Elliptical", spec:"60 sec · high effort", load:"elliptical" }
+      ]}
+    ]
+  },
+  {
+    id:1, key:"Day 2", label:"Strength & Conditioning", color:"#FF6B35",
+    sections:[
+      { title:"Warm-Up", subtitle:"3–4 min", type:"warmup", items:[
+        { name:"Mobility Flow", spec:"hips · shoulders · spine" },
+        { name:"Band Walks", spec:"15 steps · mini band" }
+      ]},
+      { title:"Strength Superset", subtitle:"4 rounds · rest 60s", type:"superset", rounds:4, items:[
+        { name:"Trap Bar / DB Deadlift", spec:"6–8 reps", load:"db-bilateral" },
+        { name:"Overhead Press", spec:"8 reps", load:"db-bilateral" }
+      ]},
+      { title:"Accessory Circuit", subtitle:"3 rounds", type:"circuit", rounds:3, items:[
+        { name:"Bulgarian Split Squat", spec:"8 reps/leg", load:"db-bilateral" },
+        { name:"Pull-Ups (or Banded)", spec:"6–8 reps", load:"loop-band" },
+        { name:"Side Plank", spec:"30 sec/side", load:"bodyweight" }
+      ]},
+      { title:"Finisher", subtitle:"6–8 min · 4–5 rounds · rest 45s", type:"finisher", rounds:5, items:[
+        { name:"Elliptical", spec:"90 sec · mod-high effort", load:"elliptical" },
+        { name:"Loop Band Thrusters", spec:"10 reps · alt: DB Thruster", load:"thruster" }
+      ]}
+    ]
+  },
+  {
+    id:2, key:"Day 3", label:"Strength & Conditioning", color:"#7EB8FF",
+    sections:[
+      { title:"Warm-Up", subtitle:"3–4 min", type:"warmup", items:[
+        { name:"Jump Rope", spec:"1 min" },
+        { name:"Hip Openers / Cat-Cows / Shoulder Mobility", spec:"" }
+      ]},
+      { title:"Strength Superset", subtitle:"4 rounds · rest 60s", type:"superset", rounds:4, items:[
+        { name:"Front Squat or DB Squat", spec:"6–8 reps", load:"db-bilateral" },
+        { name:"Push-Ups or Dips", spec:"AMRAP (–1/2)", load:"bodyweight" }
+      ]},
+      { title:"Accessory Circuit", subtitle:"3 rounds", type:"circuit", rounds:3, items:[
+        { name:"DB Walking Lunges", spec:"10 steps/leg", load:"db-bilateral" },
+        { name:"Face Pulls / Band Pull-Aparts", spec:"12 reps", load:"loop-band" },
+        { name:"Hanging Knee Raises", spec:"12 reps", load:"bodyweight" },
+        { name:"Elliptical", spec:"2 min · mod-high effort", load:"elliptical" }
+      ]}
+    ]
+  }
+];
+
+var state = {
+  activeDay:0, loads:{}, rounds:{},
+  notes:["","",""], dayDone:[false,false,false], saving:false
+};
+
+/* ── INIT ── */
+document.addEventListener("DOMContentLoaded", function() {
+  renderTabs();
+  renderContent();
+  apiCall("GET", { action:"setup" }).catch(function(){});
+});
+
+window.addEventListener("online",  function(){ document.getElementById("offline-banner").classList.remove("visible"); });
+window.addEventListener("offline", function(){ document.getElementById("offline-banner").classList.add("visible"); });
+
+/* ── API ── */
+function apiCall(method, params, body) {
+  if (!GAS_URL || GAS_URL === "PASTE_YOUR_APPS_SCRIPT_URL_HERE") {
+    return Promise.reject(new Error("GAS_URL not configured"));
+  }
+  if (method === "GET") {
+    var qs = Object.keys(params).map(function(k){ return k+"="+encodeURIComponent(params[k]); }).join("&");
+    return fetch(GAS_URL + "?" + qs).then(function(r){ return r.json(); });
+  }
+  return fetch(GAS_URL, {
+    method: "POST",
+    body: JSON.stringify(body),
+    headers: { "Content-Type": "text/plain" }
+  }).then(function(r){ return r.json(); });
+}
+
+/* ── TABS ── */
+function renderTabs() {
+  var c = document.getElementById("day-tabs");
+  c.innerHTML = "";
+  DAYS.forEach(function(d,i) {
+    var btn = document.createElement("button");
+    btn.className = "day-tab"+(i===state.activeDay?" active":"");
+    if (i===state.activeDay){ btn.style.background=d.color; btn.style.color="#000"; }
+    btn.innerHTML = d.key+(state.dayDone[i]?'<span class="done-mark">✓</span>':"");
+    btn.onclick = (function(idx){ return function(){ switchDay(idx); }; })(i);
+    c.appendChild(btn);
+  });
+}
+
+function switchDay(idx) {
+  state.activeDay=idx;
+  renderTabs();
+  renderContent();
+  loadLastSession(idx);
+}
+
+/* ── LAST SESSION ── */
+function loadLastSession(dayIdx) {
+  apiCall("GET", { action:"getLastSession", day:DAYS[dayIdx].key })
+    .then(function(result) {
+      if (!result||!result.success||!result.data) return;
+      var last=result.data, day=DAYS[dayIdx];
+      day.sections.forEach(function(sec,si){
+        if (!sec.rounds) return;
+        sec.items.forEach(function(item,ii){
+          if (!item.load||item.load==="bodyweight") return;
+          var k=dayIdx+"-"+si+"-"+ii;
+          if (last[item.name]&&!state.loads[k]) {
+            try { state.loads[k]=JSON.parse(last[item.name].loadValue); }
+            catch(e){ state.loads[k]={weight:last[item.name].loadValue}; }
+          }
+        });
+      });
+      renderContent();
+    })
+    .catch(function(){});
+}
+
+/* ── RENDER ── */
+function renderContent() {
+  var day=DAYS[state.activeDay], color=day.color, html=[];
+
+  html.push('<div class="day-header">');
+  html.push('<div class="day-bar" style="background:'+color+'"></div>');
+  html.push('<div><div class="day-title">'+day.key.toUpperCase()+'</div>');
+  html.push('<div class="day-subtitle">'+day.label+'</div></div></div>');
+
+  day.sections.forEach(function(sec,si){
+    html.push('<div class="section-card">');
+    html.push('<div class="section-head">');
+    html.push('<div class="section-title'+(sec.type==="warmup"?" dim":"")+'">'+sec.title.toUpperCase()+'</div>');
+    html.push('<div class="section-meta" style="color:'+color+'">'+sec.subtitle+'</div>');
+    html.push('</div>');
+
+    sec.items.forEach(function(item,ii){
+      var trackable=item.load&&item.load!=="bodyweight";
+      var hasRounds=!!sec.rounds;
+      var sk=state.activeDay+"-"+si+"-"+ii;
+      var ld=state.loads[sk]||{};
+
+      html.push('<div class="ex-row">');
+      html.push('<div class="ex-info">');
+      html.push('<div class="ex-name'+(sec.type==="warmup"||!item.load?" dim":"")+'">'+item.name+'</div>');
+      if (item.spec) html.push('<div class="ex-spec'+(trackable?" bright":" dim")+'" style="'+(trackable?"color:"+color:"")+'">'+ item.spec+'</div>');
+      html.push('</div>');
+
+      if (trackable) html.push('<div class="load-wrap">'+buildLoad(item.load,sk,ld)+'</div>');
+      if (trackable&&hasRounds) html.push('<div class="ctrl-divider"></div>');
+      if (hasRounds&&item.load) {
+        html.push('<div class="rounds-wrap">');
+        for (var r=0;r<sec.rounds;r++){
+          var rk=sk+"-"+r, done=!!state.rounds[rk];
+          html.push('<button class="round-btn'+(done?" done":"")+'" style="'+(done?"background:"+color+";border:none":"")+'" onclick="toggleRound(\''+rk+'\',\''+color+'\',this)">');
+          html.push('<svg width="16" height="16" viewBox="0 0 14 14" fill="none"><path d="M2 7L5.5 10.5L12 3.5" stroke="#000" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+          html.push('</button>');
+        }
+        html.push('</div>');
+      }
+      html.push('</div>');
+    });
+    html.push('</div>');
+  });
+
+  html.push('<div class="notes-card"><div class="notes-label">NOTES</div>');
+  html.push('<textarea class="notes-input" rows="3" placeholder="How\'d it feel? PRs, modifications..." oninput="updateNote(this.value)">'+(state.notes[state.activeDay]||"")+'</textarea></div>');
+
+  html.push('<button class="btn-save" id="btn-save" style="background:'+color+';color:#000;" onclick="saveSession()">SAVE SESSION</button>');
+  var done=state.dayDone[state.activeDay];
+  html.push('<button class="btn-complete" id="btn-complete" style="border:2px solid '+color+';color:'+(done?"#000":color)+';background:'+(done?color:"transparent")+';" onclick="toggleDone()">');
+  html.push(done?"✓ WORKOUT COMPLETE":"MARK DAY COMPLETE");
+  html.push('</button>');
+
+  document.getElementById("content").innerHTML=html.join("");
+}
+
+function buildLoad(type,sk,ld){
+  if (type==="db-bilateral") return lf("ea",ni(sk,"weight",ld.weight,"lbs","58px"));
+  if (type==="db-single")    return lf("lbs",ni(sk,"weight",ld.weight,"lbs","58px"));
+  if (type==="loop-band")    return lf("loop",bs(sk,"band",ld.band,LOOP_BANDS));
+  if (type==="mini-band")    return lf("mini",bs(sk,"band",ld.band,MINI_BANDS));
+  if (type==="elliptical")   return lf("incl",ni(sk,"incline",ld.incline,"—","48px"))+lf("res",ni(sk,"resistance",ld.resistance,"—","48px"));
+  if (type==="thruster")     return lf("loop",bs(sk,"band",ld.band,LOOP_BANDS))+lf("vest",ni(sk,"vest",ld.vest,"lbs","52px"));
+  return "";
+}
+function lf(label,inner){ return '<div class="load-field"><div class="load-label">'+label+'</div>'+inner+'</div>'; }
+function ni(sk,field,val,ph,w){ return '<input class="load-input" type="text" inputmode="decimal" style="width:'+w+'" placeholder="'+ph+'" value="'+(val||"")+'" oninput=\'numInput("'+sk+'","'+field+'",this.value)\'>'; }
+function bs(sk,field,cur,opts){
+  var s='<select class="load-select" onchange=\'bandInput("'+sk+'","'+field+'",this.value)\'>';
+  opts.forEach(function(o){ s+='<option value="'+o+'"'+(o===(cur||"—")?" selected":"")+' style="background:#1a1a1a">'+o+'</option>'; });
+  return s+'</select>';
+}
+
+function numInput(k,field,val){ if(!state.loads[k])state.loads[k]={}; state.loads[k][field]=val; }
+function bandInput(k,field,val){ if(!state.loads[k])state.loads[k]={}; state.loads[k][field]=val; }
+function toggleRound(rk,color,btn){
+  state.rounds[rk]=!state.rounds[rk];
+  var on=state.rounds[rk];
+  btn.classList.toggle("done",on);
+  btn.style.background=on?color:"";
+  btn.style.border=on?"none":"2px solid rgba(255,255,255,0.22)";
+}
+function updateNote(val){ state.notes[state.activeDay]=val; }
+function toggleDone(){
+  state.dayDone[state.activeDay]=!state.dayDone[state.activeDay];
+  renderTabs();
+  var done=state.dayDone[state.activeDay], color=DAYS[state.activeDay].color;
+  var btn=document.getElementById("btn-complete");
+  btn.style.background=done?color:"transparent";
+  btn.style.color=done?"#000":color;
+  btn.style.border="2px solid "+color;
+  btn.textContent=done?"✓ WORKOUT COMPLETE":"MARK DAY COMPLETE";
+}
+
+/* ── SAVE ── */
+function saveSession(){
+  if (state.saving) return;
+  state.saving=true;
+  var dayIdx=state.activeDay, day=DAYS[dayIdx], exercises=[];
+  day.sections.forEach(function(sec,si){
+    if (!sec.rounds) return;
+    sec.items.forEach(function(item,ii){
+      if (!item.load) return;
+      var sk=dayIdx+"-"+si+"-"+ii, ld=state.loads[sk]||{}, done=0;
+      for (var r=0;r<sec.rounds;r++){ if(state.rounds[sk+"-"+r])done++; }
+      exercises.push({ name:item.name, spec:item.spec, loadType:item.load, loadValue:JSON.stringify(ld), roundsDone:done, roundsTarget:sec.rounds });
+    });
+  });
+  var now=new Date();
+  var payload={ action:"saveSession", data:{ day:day.key, date:(now.getMonth()+1)+"/"+now.getDate()+"/"+now.getFullYear(), exercises:exercises, notes:state.notes[dayIdx]||"" }};
+  var btn=document.getElementById("btn-save");
+  btn.innerHTML='<span class="spinner"></span>SAVING...';
+  btn.style.opacity="0.75";
+
+  apiCall("POST", {}, payload)
+    .then(function(r){
+      state.saving=false;
+      btn.innerHTML="SAVE SESSION"; btn.style.opacity="1";
+      showToast(r&&r.success?"✓ Session saved":"Save failed");
+    })
+    .catch(function(e){
+      state.saving=false;
+      btn.innerHTML="SAVE SESSION"; btn.style.opacity="1";
+      showToast("Error — check GAS URL");
+    });
+}
+
+function showToast(msg){
+  var t=document.getElementById("toast");
+  t.textContent=msg; t.classList.add("show");
+  setTimeout(function(){ t.classList.remove("show"); },3000);
+}
+</script>
+</body>
+</html>
