@@ -216,10 +216,10 @@ var state = {
 };
 
 document.addEventListener("DOMContentLoaded", function() {
+  loadFromLocalStorage();
   renderTabs();
   renderContent();
   apiGet({ action:"setup" }).catch(function(){});
-  setTimeout(function() { loadLastSession(state.activeDay); }, 800);
 });
 
 /* ── API — GET only to avoid CORS ── */
@@ -249,7 +249,21 @@ function switchDay(idx) {
   state.activeDay=idx; renderTabs(); renderContent(); loadLastSession(idx);
 }
 
-/* ── LAST SESSION ── */
+/* ── LOCAL STORAGE ── */
+function loadFromLocalStorage() {
+  try {
+    var saved = localStorage.getItem("tbt_loads");
+    if (saved) state.loads = JSON.parse(saved);
+  } catch(e) {}
+}
+
+function saveToLocalStorage() {
+  try {
+    localStorage.setItem("tbt_loads", JSON.stringify(state.loads));
+  } catch(e) {}
+}
+
+/* ── LAST SESSION (kept for manual use) ── */
 function loadLastSession(dayIdx) {
   apiGet({ action:"getLastSession", day:DAYS[dayIdx].key })
     .then(function(result) {
@@ -267,8 +281,7 @@ function loadLastSession(dayIdx) {
           }
         });
       });
-      // Only re-render if we actually got data — this renders inputs with values baked in
-      if (found) renderContent();
+      if (found) { saveToLocalStorage(); renderContent(); }
     })
     .catch(function(){});
 }
@@ -351,8 +364,8 @@ function bs(sk,field,cur,opts){
   return s+'</select>';
 }
 
-function numInput(k,field,val){ if(!state.loads[k])state.loads[k]={}; state.loads[k][field]=val; }
-function bandInput(k,field,val){ if(!state.loads[k])state.loads[k]={}; state.loads[k][field]=val; }
+function numInput(k,field,val){ if(!state.loads[k])state.loads[k]={}; state.loads[k][field]=val; saveToLocalStorage(); }
+function bandInput(k,field,val){ if(!state.loads[k])state.loads[k]={}; state.loads[k][field]=val; saveToLocalStorage(); }
 function toggleRound(rk,color,btn){
   state.rounds[rk]=!state.rounds[rk];
   var on=state.rounds[rk];
@@ -397,7 +410,12 @@ function saveSession(){
     .then(function(r){
       state.saving=false;
       btn.innerHTML="SAVE SESSION"; btn.style.opacity="1";
-      showToast(r&&r.success?"✓ Session saved":"Save failed — try again");
+      if (r&&r.success) {
+        saveToLocalStorage();
+        showToast("✓ Session saved");
+      } else {
+        showToast("Save failed — try again");
+      }
     })
     .catch(function(){
       state.saving=false;
