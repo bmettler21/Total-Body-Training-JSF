@@ -219,6 +219,7 @@ document.addEventListener("DOMContentLoaded", function() {
   renderTabs();
   renderContent();
   apiGet({ action:"setup" }).catch(function(){});
+  setTimeout(function() { loadLastSession(state.activeDay); }, 800);
 });
 
 /* ── API — GET only to avoid CORS ── */
